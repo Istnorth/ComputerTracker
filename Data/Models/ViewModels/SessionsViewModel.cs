@@ -22,6 +22,8 @@ namespace ComputerTracker.Data.Models.ViewModels
         public ICommand FilterCommand { get; }
         public ICommand StartMonitoringCommand { get; }
         public ICommand StopMonitoringCommand { get; }
+        public ICommand ShowAppUsageHistoryCommand { get; }
+        public ICommand ShowKeyLogHistoryCommand { get; }
 
         private SoftwareUsageMonitor _softwareMonitor;
 
@@ -41,6 +43,9 @@ namespace ComputerTracker.Data.Models.ViewModels
             FilterCommand = new RelayCommand(ExecuteFilter);
             StartMonitoringCommand = new RelayCommand(ExecuteStartMonitoring, CanExecuteStartMonitoring);
             StopMonitoringCommand = new RelayCommand(ExecuteStopMonitoring, CanExecuteStopMonitoring);
+            ShowAppUsageHistoryCommand = new RelayCommand(_ => ExecuteShowHistory(), _ => SelectedSession != null);
+            ShowKeyLogHistoryCommand = new RelayCommand(_ => ExecuteShowKeyLogHistory(), _ => SelectedSession != null);
+
             LoadSessions();
         }
 
@@ -169,6 +174,31 @@ namespace ComputerTracker.Data.Models.ViewModels
             {
                 Sessions.Add(session);
             }
+        }
+
+        private void ExecuteShowHistory()
+        {
+            int computerId = SelectedSession.ComputerID;
+
+            var historyVm = new AppUsageHistoryViewModel(computerId);
+            var window = new AppUsageHistoryWindow { DataContext = historyVm };
+            if (Application.Current.MainWindow != window)
+                window.Owner = Application.Current.MainWindow;
+            window.ShowDialog();
+        }
+
+        private void ExecuteShowKeyLogHistory()
+        {
+            if (SelectedSession == null) return;
+
+            var vm = new KeyLogHistoryViewModel(SelectedSession.ComputerID);
+
+            var wnd = new KeyLogHistoryWindow
+            {
+                DataContext = vm,
+                Owner = Application.Current.MainWindow
+            };
+            wnd.ShowDialog();
         }
 
         private bool CanExecuteSessionCommand(object obj) => SelectedSession != null;

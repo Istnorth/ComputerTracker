@@ -2,51 +2,47 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:val="clr-namespace:ComputerTracker.Data.Commands"
-        Title="Добавить/Изменить компьютер" Height="396" Width="400"
-        WindowStartupLocation="CenterOwner" Background="#FF363636">
+        Title="Добавить/Изменить компьютер"
+        Height="260" Width="400"
+        WindowStartupLocation="CenterOwner"
+        Background="#FF363636">
     <Window.Resources>
         <Style TargetType="Button">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding (Validation.HasError), 
-                            RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                <DataTrigger Binding="{Binding (Validation.HasError),
+                            RelativeSource={RelativeSource AncestorType=Window}}"
+                             Value="True">
                     <Setter Property="IsEnabled" Value="False"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
     </Window.Resources>
-    
+
     <Grid Margin="10" Background="#FF363636">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <!-- Название -->
             <RowDefinition Height="Auto"/>
-            <!-- IP-адрес -->
+            <!-- IP -->
             <RowDefinition Height="Auto"/>
-            <!-- CPU Usage -->
+            <!-- Host -->
             <RowDefinition Height="Auto"/>
-            <!-- Memory Usage -->
+            <!-- Port -->
+            <RowDefinition/>
+            <!-- spacer -->
             <RowDefinition Height="Auto"/>
-            <!-- Disk Usage -->
-            <RowDefinition Height="Auto"/>
-            <!-- Network Usage -->
-            <RowDefinition Height="Auto"/>
-            <!-- OS Version -->
-            <RowDefinition Height="*"/>
-            <!-- Кнопки -->
+            <!-- Buttons -->
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="161"/>
+            <ColumnDefinition Width="120"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
 
-        <!-- Имя компьютера -->
-        <TextBlock Text="Название:" Grid.Row="0" Grid.Column="0" 
+        <!-- Название -->
+        <TextBlock Text="Название:" Grid.Row="0" Grid.Column="0"
                    VerticalAlignment="Center" Margin="0,0,5,5" Foreground="White"/>
-        <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,5">
-            <TextBox.Text>
-                <Binding Path="ComputerName" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True"/>
-            </TextBox.Text>
-        </TextBox>
+        <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,5"
+                 Text="{Binding ComputerName, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
 
         <!-- IP-адрес -->
         <TextBlock Text="IP-адрес:" Grid.Row="1" Grid.Column="0"
@@ -61,67 +57,33 @@
             </TextBox.Text>
         </TextBox>
 
-        <!-- CPU Usage -->
-        <TextBlock Text="CPU (%):" Grid.Row="2" Grid.Column="0"
+        <!-- Host -->
+        <TextBlock Text="Host:" Grid.Row="2" Grid.Column="0"
                    VerticalAlignment="Center" Margin="0,0,5,5" Foreground="White"/>
-        <TextBox Grid.Row="2" Grid.Column="1" Margin="0,0,0,5">
-            <TextBox.Text>
-                <Binding Path="CPUUsage" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True">
-                    <Binding.ValidationRules>
-                        <val:PercentageValidationRule/>
-                    </Binding.ValidationRules>
-                </Binding>
-            </TextBox.Text>
-        </TextBox>
+        <TextBox Grid.Row="2" Grid.Column="1" Margin="0,0,0,5"
+                 Text="{Binding Host, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
 
-        <!-- Memory Usage -->
-        <TextBlock Text="Память (%):" Grid.Row="3" Grid.Column="0"
+        <!-- Port -->
+        <TextBlock Text="Port:" Grid.Row="3" Grid.Column="0"
                    VerticalAlignment="Center" Margin="0,0,5,5" Foreground="White"/>
         <TextBox Grid.Row="3" Grid.Column="1" Margin="0,0,0,5">
             <TextBox.Text>
-                <Binding Path="MemoryUsage" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True">
+                <Binding Path="Port" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True">
                     <Binding.ValidationRules>
-                        <val:PercentageValidationRule/>
+                        <val:IntegerValidationRule/>
                     </Binding.ValidationRules>
                 </Binding>
             </TextBox.Text>
         </TextBox>
 
-        <!-- Disk Usage -->
-        <TextBlock Text="Диск (%):" Grid.Row="4" Grid.Column="0"
-                   VerticalAlignment="Center" Margin="0,0,5,5" Foreground="White"/>
-        <TextBox Grid.Row="4" Grid.Column="1" Margin="0,0,0,5">
-            <TextBox.Text>
-                <Binding Path="DiskUsage" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True">
-                    <Binding.ValidationRules>
-                        <val:PercentageValidationRule/>
-                    </Binding.ValidationRules>
-                </Binding>
-            </TextBox.Text>
-        </TextBox>
-
-        <!-- Network Usage -->
-        <TextBlock Text="Сеть (Мбит/с):" Grid.Row="5" Grid.Column="0"
-                   VerticalAlignment="Center" Margin="0,0,5,5" Foreground="White"/>
-        <TextBox Grid.Row="5" Grid.Column="1" Margin="0,0,0,5">
-            <TextBox.Text>
-                <Binding Path="NetworkUsage" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True"/>
-            </TextBox.Text>
-        </TextBox>
-
-        <!-- OS Version -->
-        <TextBlock Text="OS Version:" Grid.Row="6" Grid.Column="0"
-                   VerticalAlignment="Center" Margin="0,0,5,5" Foreground="White"/>
-        <TextBox Grid.Row="6" Grid.Column="1" Margin="0,0,0,5">
-            <TextBox.Text>
-                <Binding Path="OSVersion" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True"/>
-            </TextBox.Text>
-        </TextBox>
-
-        <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,123,0,0" Grid.Column="1" Width="150" Height="30" VerticalAlignment="Bottom">
-            <Button Content="OK" Width="70" Margin="0,0,10,0" Command="{Binding SaveCommand}" IsDefault="True"
-              Background="#FF737373" Foreground="White" BorderBrush="#FF383838"/>
-            <Button Content="Отмена" Width="70" IsCancel="True" Background="#FF737373" Foreground="White" BorderBrush="#FF383838"/>
+        <!-- Buttons -->
+        <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="OK" Width="75" Margin="0,0,10,0"
+                    Command="{Binding SaveCommand}" IsDefault="True"
+                    Background="#FF737373" Foreground="White" BorderBrush="#FF383838"/>
+            <Button Content="Отмена" Width="75" IsCancel="True"
+                    Background="#FF737373" Foreground="White" BorderBrush="#FF383838"/>
         </StackPanel>
     </Grid>
 </Window>

@@ -1,7 +1,6 @@
 ﻿using ComputerTracker.Data.DbModel;
 using ComputerTracker.Data.Services;
 using ComputerTracker.Pages;
-using DocumentFormat.OpenXml.Drawing.Charts;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.ObjectModel;
@@ -14,8 +13,7 @@ namespace ComputerTracker.Data.Models.ViewModels
 {
     public class ComputersViewModel : INotifyPropertyChanged
     {
-        public ObservableCollection<Computer> Computers { get; set; }
-
+        public ObservableCollection<Computer> Computers { get; }
         public ICommand RefreshCommand { get; }
         public ICommand AddComputerCommand { get; }
         public ICommand EditComputerCommand { get; }
@@ -26,11 +24,7 @@ namespace ComputerTracker.Data.Models.ViewModels
         public Computer SelectedComputer
         {
             get => _selectedComputer;
-            set
-            {
-                _selectedComputer = value;
-                OnPropertyChanged();
-            }
+            set { _selectedComputer = value; OnPropertyChanged(); }
         }
 
         private readonly ComputerService _computerService = new ComputerService();
@@ -38,185 +32,171 @@ namespace ComputerTracker.Data.Models.ViewModels
         public ComputersViewModel()
         {
             Computers = new ObservableCollection<Computer>();
-            RefreshCommand = new RelayCommand(ExecuteRefresh);
-            AddComputerCommand = new RelayCommand(ExecuteAdd);
-            EditComputerCommand = new RelayCommand(ExecuteEdit, CanExecuteEdit);
-            DeleteComputerCommand = new RelayCommand(ExecuteDelete, CanExecuteDelete);
-            UpdateSystemDataCommand = new RelayCommand(ExecuteUpdateSystemData, CanExecuteUpdateSystemData);
+            RefreshCommand = new RelayCommand(_ => LoadComputers());
+            AddComputerCommand = new RelayCommand(_ => ExecuteAdd());
+            EditComputerCommand = new RelayCommand(_ => ExecuteEdit(), _ => SelectedComputer != null);
+            DeleteComputerCommand = new RelayCommand(_ => ExecuteDelete(), _ => SelectedComputer != null);
+            UpdateSystemDataCommand = new RelayCommand(_ => ExecuteUpdateSystemData(), _ => SelectedComputer != null);
+
             LoadComputers();
         }
 
         private void LoadComputers()
         {
-            using (var context = new AppDbContext())
+            Computers.Clear();
+            using var ctx = new AppDbContext();
+            foreach (var c in ctx.Computers
+                                 .Include(c => c.SystemData)
+                                 .Include(c => c.Gpus)
+                                 .Include(c => c.Keyboards)
+                                 .Include(c => c.Mice)
+                                 .Include(c => c.Printers)
+                                 .Include(c => c.Scanners)
+                                 .Include(c => c.Monitors))
             {
-                Computers.Clear();
-                foreach (var comp in context.Computers.Include("SystemData"))
-                {
-                    Computers.Add(comp);
-                }
+                Computers.Add(c);
             }
         }
 
-        private void ExecuteRefresh(object obj) => LoadComputers();
-
-        private void ExecuteAdd(object obj)
-        {
-            var addVM = new AddEditComputerViewModel();
-            var addWindow = new AddEditComputerWindow(addVM);
-
-            if (Application.Current.MainWindow != null && Application.Current.MainWindow != addWindow)
-            {
-                addWindow.Owner = Application.Current.MainWindow;
-            }
-
-            if (addWindow.ShowDialog() == true)
-            {
-                var newComputer = new Computer
-                {
-                    ComputerName = addVM.ComputerName,
-                    IPAddress = addVM.IPAddress,
-                    LastUpdated = DateTime.Now
-                };
-
-                _computerService.AddComputer(newComputer);
-
-                bool systemDataProvided = addVM.CPUUsage != 0 ||
-                                          addVM.MemoryUsage != 0 ||
-                                          addVM.DiskUsage != 0 ||
-                                          addVM.NetworkUsage != 0 ||
-                                          !string.IsNullOrWhiteSpace(addVM.OSVersion);
-
-                if (systemDataProvided)
-                {
-                    using (var context = new AppDbContext())
-                    {
-                        var computerInDb = context.Computers.Find(newComputer.ComputerID);
-                        if (computerInDb != null)
-                        {
-                            var systemData = new ComputerSystemData
-                            {
-                                ComputerID = computerInDb.ComputerID,
-                                Timestamp = DateTime.Now,
-                                CPUUsage = addVM.CPUUsage,
-                                MemoryUsage = addVM.MemoryUsage,
-                                DiskUsage = addVM.DiskUsage,
-                                NetworkUsage = addVM.NetworkUsage,
-                                OSVersion = addVM.OSVersion
-                            };
-
-                            context.ComputerSystemDatas.Add(systemData);
-                            context.SaveChanges();
-                        }
-                    }
-                }
-                LoadComputers();
-            }
-        }
-
-        private void ExecuteEdit(object obj)
-        {
-            if (SelectedComputer == null) return;
-            var editVM = new AddEditComputerViewModel
-            {
-                ComputerName = SelectedComputer.ComputerName,
-                IPAddress = SelectedComputer.IPAddress,
-
-                CPUUsage = SelectedComputer.LatestSystemData?.CPUUsage ?? 0,
-                MemoryUsage = SelectedComputer.LatestSystemData?.MemoryUsage ?? 0,
-                DiskUsage = SelectedComputer.LatestSystemData?.DiskUsage ?? 0,
-                NetworkUsage = SelectedComputer.LatestSystemData?.NetworkUsage ?? 0,
-                OSVersion = SelectedComputer.LatestSystemData?.OSVersion ?? string.Empty
-            };
-
-            var editWindow = new AddEditComputerWindow(editVM);
-            if (Application.Current.MainWindow != null && Application.Current.MainWindow != editWindow)
-            {
-                editWindow.Owner = Application.Current.MainWindow;
-            }
-
-            if (editWindow.ShowDialog() == true)
-            {
-                SelectedComputer.ComputerName = editVM.ComputerName;
-                SelectedComputer.IPAddress = editVM.IPAddress;
-                SelectedComputer.LastUpdated = DateTime.Now;
-
-                bool systemDataChanged = editVM.CPUUsage != (SelectedComputer.LatestSystemData?.CPUUsage ?? 0)
-                                         || editVM.MemoryUsage != (SelectedComputer.LatestSystemData?.MemoryUsage ?? 0)
-                                         || editVM.DiskUsage != (SelectedComputer.LatestSystemData?.DiskUsage ?? 0)
-                                         || editVM.NetworkUsage != (SelectedComputer.LatestSystemData?.NetworkUsage ?? 0)
-                                         || editVM.OSVersion != (SelectedComputer.LatestSystemData?.OSVersion ?? string.Empty);
-
-                if (systemDataChanged)
-                {
-                    using (var context = new AppDbContext())
-                    {
-                        var comp = context.Computers
-                                          .Include(c => c.SystemData)
-                                          .FirstOrDefault(c => c.ComputerID == SelectedComputer.ComputerID);
-                        if (comp != null)
-                        {
-                            var newSysData = new ComputerSystemData
-                            {
-                                ComputerID = comp.ComputerID,
-                                Timestamp = DateTime.Now,
-                                CPUUsage = editVM.CPUUsage,
-                                MemoryUsage = editVM.MemoryUsage,
-                                DiskUsage = editVM.DiskUsage,
-                                NetworkUsage = editVM.NetworkUsage,
-                                OSVersion = editVM.OSVersion
-                            };
-                            context.ComputerSystemDatas.Add(newSysData);
-                            context.Computers.Update(comp);
-                            context.SaveChanges();
-                        }
-                    }
-                }
-                _computerService.UpdateComputer(SelectedComputer);
-                LoadComputers();
-            }
-        }
-
-
-        private bool CanExecuteEdit(object obj) => SelectedComputer != null;
-
-        private void ExecuteDelete(object obj)
-        {
-            if (SelectedComputer == null) return;
-
-            var result = MessageBox.Show($"Удалить компьютер \"{SelectedComputer.ComputerName}\" и все связанные системные данные?",
-                                         "Подтверждение удаления",
-                                         MessageBoxButton.YesNo,
-                                         MessageBoxImage.Warning);
-            if (result == MessageBoxResult.Yes)
-            {
-                _computerService.DeleteComputer(SelectedComputer.ComputerID);
-                LoadComputers();
-            }
-        }
-        private bool CanExecuteDelete(object obj) => SelectedComputer != null;
-
-        private bool CanExecuteUpdateSystemData(object obj) => SelectedComputer != null;
-
-        private void ExecuteUpdateSystemData(object obj)
+        private void ExecuteAdd()
         {
             try
             {
-                var systemDataService = new SystemDataService();
-                systemDataService.UpdateSystemData(SelectedComputer.ComputerID);
-                MessageBox.Show("Системные данные обновлены", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+                var vm = new AddEditComputerViewModel();
+                var win = new AddEditComputerWindow(vm) { Owner = Application.Current.MainWindow };
+                if (win.ShowDialog() != true) return;
+
+                var comp = new Computer
+                {
+                    ComputerName = vm.ComputerName,
+                    IPAddress = vm.IPAddress,
+                    Host = vm.Host,
+                    Port = vm.Port,
+                    LastUpdated = DateTime.UtcNow
+                };
+                _computerService.AddComputer(comp);
+
+                // создаём первую запись SystemData сразу:
+                var sys = new ComputerSystemData
+                {
+                    ComputerID = comp.ComputerID,
+                    Timestamp = DateTime.UtcNow,
+                    OSCaption = vm.OSCaption,
+                    OSVersion = vm.OSVersion,
+                    OSManufacturer = vm.OSManufacturer,
+                    WindowsDirectory = vm.WindowsDirectory,
+                    CpuCores = vm.CpuCores,
+                    CpuThreads = vm.CpuThreads,
+                    CpuClockMHz = vm.CpuClockMHz
+                };
+                using var ctx = new AppDbContext();
+                ctx.ComputerSystemDatas.Add(sys);
+                ctx.SaveChanges();
+
+                LoadComputers();
+            }
+            catch (DbUpdateException dbex)
+            {
+                var sqlEx = dbex.GetBaseException();
+                MessageBox.Show(
+                    $"SaveChanges failed:\n{dbex.Message}\n\nInner: {sqlEx.Message}",
+                    "Ошибка сохранения", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ExecuteEdit()
+        {
+            try
+            {
+                if (SelectedComputer == null) return;
+
+                // заполняем VM из выбранного
+                var vm = new AddEditComputerViewModel
+                {
+                    ComputerName = SelectedComputer.ComputerName,
+                    IPAddress = SelectedComputer.IPAddress,
+                    Host = SelectedComputer.Host,
+                    Port = SelectedComputer.Port,
+                    OSCaption = SelectedComputer.LatestSystemData?.OSCaption,
+                    OSVersion = SelectedComputer.LatestSystemData?.OSVersion,
+                    OSManufacturer = SelectedComputer.LatestSystemData?.OSManufacturer,
+                    WindowsDirectory = SelectedComputer.LatestSystemData?.WindowsDirectory,
+                    CpuCores = SelectedComputer.LatestSystemData?.CpuCores ?? 0,
+                    CpuThreads = SelectedComputer.LatestSystemData?.CpuThreads ?? 0,
+                    CpuClockMHz = SelectedComputer.LatestSystemData?.CpuClockMHz ?? 0
+                };
+                var win = new AddEditComputerWindow(vm) { Owner = Application.Current.MainWindow };
+                if (win.ShowDialog() != true) return;
+
+                // обновляем свойства компьютера
+                SelectedComputer.ComputerName = vm.ComputerName;
+                SelectedComputer.IPAddress = vm.IPAddress;
+                SelectedComputer.Host = vm.Host;
+                SelectedComputer.Port = vm.Port;
+                SelectedComputer.LastUpdated = DateTime.UtcNow;
+                _computerService.UpdateComputer(SelectedComputer);
+
+                // создаём новую запись SystemData
+                var sys = new ComputerSystemData
+                {
+                    ComputerID = SelectedComputer.ComputerID,
+                    Timestamp = DateTime.UtcNow,
+                    OSCaption = vm.OSCaption,
+                    OSVersion = vm.OSVersion,
+                    OSManufacturer = vm.OSManufacturer,
+                    WindowsDirectory = vm.WindowsDirectory,
+                    CpuCores = vm.CpuCores,
+                    CpuThreads = vm.CpuThreads,
+                    CpuClockMHz = vm.CpuClockMHz
+                };
+                using var ctx = new AppDbContext();
+                ctx.ComputerSystemDatas.Add(sys);
+                ctx.SaveChanges();
+
+                LoadComputers();
+            }
+            catch (DbUpdateException dbex)
+            {
+                var sqlEx = dbex.GetBaseException();
+                MessageBox.Show(
+                    $"SaveChanges failed:\n{dbex.Message}\n\nInner: {sqlEx.Message}",
+                    "Ошибка сохранения", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ExecuteDelete()
+        {
+            if (SelectedComputer == null) return;
+            if (MessageBox.Show(
+                    $"Удалить компьютер «{SelectedComputer.ComputerName}»?",
+                    "Подтверждение",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning) != MessageBoxResult.Yes)
+                return;
+
+            _computerService.DeleteComputer(SelectedComputer.ComputerID);
+            LoadComputers();
+        }
+
+        private void ExecuteUpdateSystemData()
+        {
+            try
+            {
+                new SystemDataService().UpdateSystemData(SelectedComputer.ComputerID);
                 LoadComputers();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка обновления системных данных: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    $"Ошибка обновления системных данных:\n{ex}\n\nInner:\n{ex.InnerException}",
+                    "Ошибка",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string propName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-        }
+        protected void OnPropertyChanged([CallerMemberName] string n = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
     }
 }

@@ -17,21 +17,37 @@ namespace ComputerTracker.Data.Services
 
         public void AddComputer(Computer computer)
         {
-            using (var context = new AppDbContext())
+            try
             {
-                context.Computers.Add(computer);
-                context.SaveChanges();
+                using (var context = new AppDbContext())
+                {
+
+                    context.Computers.Add(computer);
+                    context.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.InnerException?.Message ?? ex.Message);
             }
         }
 
         public void UpdateComputer(Computer computer)
         {
-            using (var context = new AppDbContext())
+            try
             {
-                context.Computers.Update(computer);
-                context.SaveChanges();
+                using (var context = new AppDbContext())
+                {
+                    context.Computers.Update(computer);
+                    context.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.InnerException?.Message ?? ex.Message);
             }
         }
+        
 
         public void DeleteComputer(int computerID)
         {

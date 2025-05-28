@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ComputerTracker.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250510210025_10_05_2025_3")]
+    partial class _10_05_2025_3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,6 +40,9 @@ namespace ComputerTracker.Migrations
 
                     b.Property<TimeSpan>("Duration")
                         .HasColumnType("time");
+
+                    b.Property<DateTime?>("StartTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("WindowTitle")
                         .IsRequired()
@@ -149,15 +155,18 @@ namespace ComputerTracker.Migrations
                         .HasColumnType("varchar(200)");
 
                     b.Property<string>("OSManufacturer")
+                        .IsRequired()
                         .HasColumnType("varchar(100)");
 
                     b.Property<string>("OSVersion")
+                        .IsRequired()
                         .HasColumnType("varchar(150)");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("WindowsDirectory")
+                        .IsRequired()
                         .HasColumnType("varchar(200)");
 
                     b.HasKey("SystemDataID");
@@ -230,7 +239,7 @@ namespace ComputerTracker.Migrations
 
                     b.Property<string>("Key")
                         .IsRequired()
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("varchar(10)");
 
                     b.Property<DateTime>("Time")
                         .HasColumnType("datetime2");
@@ -259,6 +268,7 @@ namespace ComputerTracker.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("varchar(200)");
 
                     b.Property<string>("DeviceID")
@@ -336,6 +346,7 @@ namespace ComputerTracker.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("varchar(200)");
 
                     b.Property<string>("DeviceID")

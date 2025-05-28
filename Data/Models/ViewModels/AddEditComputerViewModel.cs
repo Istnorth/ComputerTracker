@@ -21,42 +21,82 @@ namespace ComputerTracker.Data.Models.ViewModels
             set { _ipAddress = value; OnPropertyChanged(); }
         }
 
-        private double _cpuUsage;
-        public double CPUUsage
+        private string _host;
+        public string Host
         {
-            get => _cpuUsage;
-            set { _cpuUsage = value; OnPropertyChanged(); }
+            get => _host;
+            set { _host = value; OnPropertyChanged(); }
         }
 
-        private double _memoryUsage;
-        public double MemoryUsage
+        private int _port;
+        public int Port
         {
-            get => _memoryUsage;
-            set { _memoryUsage = value; OnPropertyChanged(); }
+            get => _port;
+            set { _port = value; OnPropertyChanged(); }
         }
 
-        private double _diskUsage;
-        public double DiskUsage
+        private string _cpuName;
+        public string CPUName
         {
-            get => _diskUsage;
-            set { _diskUsage = value; OnPropertyChanged(); }
+            get => _cpuName;
+            set { _cpuName = value; OnPropertyChanged(); }
         }
 
-        private double _networkUsage;
-        public double NetworkUsage
+        private int _cpuCores;
+        public int CpuCores
         {
-            get => _networkUsage;
-            set { _networkUsage = value; OnPropertyChanged(); }
+            get => _cpuCores;
+            set { _cpuCores = value; OnPropertyChanged(); }
+        }
+
+        private int _cpuThreads;
+        public int CpuThreads
+        {
+            get => _cpuThreads;
+            set { _cpuThreads = value; OnPropertyChanged(); }
+        }
+
+        private int _cpuClockMHz;
+        public int CpuClockMHz
+        {
+            get => _cpuClockMHz;
+            set { _cpuClockMHz = value; OnPropertyChanged(); }
+        }
+
+        private string _osCaption;
+        public string OSCaption
+        {
+            get => _osCaption;
+            set { _osCaption = value; OnPropertyChanged(); }
         }
 
         private string _osVersion;
         public string OSVersion
         {
             get => _osVersion;
-            set { _osVersion = value; OnPropertyChanged(); }
+            set
+            {
+                _osVersion = value; OnPropertyChanged();
+            }
         }
 
+        private string _osManufacturer;
+        public string OSManufacturer
+        {
+            get => _osManufacturer;
+            set { _osManufacturer = value; OnPropertyChanged(); }
+        }
+
+        private string _windowsDirectory;
+        public string WindowsDirectory
+        {
+            get => _windowsDirectory;
+            set { _windowsDirectory = value; OnPropertyChanged(); }
+        }
+
+        // Команда сохранения и событие закрытия
         public ICommand SaveCommand { get; }
+        public event EventHandler<bool> RequestClose;
 
         public AddEditComputerViewModel()
         {
@@ -65,25 +105,22 @@ namespace ComputerTracker.Data.Models.ViewModels
 
         private void ExecuteSave(object parameter)
         {
-            OnRequestClose(true);
+            RequestClose?.Invoke(this, true);
         }
 
         private bool CanExecuteSave(object parameter)
         {
-            return !string.IsNullOrWhiteSpace(ComputerName) &&
-                   !string.IsNullOrWhiteSpace(IPAddress);
-        }
-
-        public event EventHandler<bool> RequestClose;
-        protected void OnRequestClose(bool dialogResult)
-        {
-            RequestClose?.Invoke(this, dialogResult);
+            return !string.IsNullOrWhiteSpace(ComputerName)
+                   && !string.IsNullOrWhiteSpace(IPAddress)
+                   && !string.IsNullOrWhiteSpace(Host)
+                   && Port > 0;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+            CommandManager.InvalidateRequerySuggested();
         }
     }
 }

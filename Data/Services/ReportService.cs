@@ -9,7 +9,6 @@ namespace ComputerTracker.Services
 {
     public class ReportService
     {
-
         public ComputerReport GetComputerReport(int computerId, DateTime? periodStart = null, DateTime? periodEnd = null)
         {
             using (var context = new AppDbContext())
@@ -104,12 +103,15 @@ namespace ComputerTracker.Services
 
                 // 3) Лист с системными данными
                 var sysDataSheet = workbook.Worksheets.Add("SystemData");
-                sysDataSheet.Cell(1, 1).Value = "Номер системных данных";
+                sysDataSheet.Cell(1, 1).Value = "ID записи";
                 sysDataSheet.Cell(1, 2).Value = "Время фиксации";
-                sysDataSheet.Cell(1, 3).Value = "CPUUsage";
-                sysDataSheet.Cell(1, 4).Value = "OSVersion";
-                sysDataSheet.Cell(1, 5).Value = "DiskUsage";
-                sysDataSheet.Cell(1, 6).Value = "NetworkUsage";
+                sysDataSheet.Cell(1, 3).Value = "OS Caption";
+                sysDataSheet.Cell(1, 4).Value = "OS Version";
+                sysDataSheet.Cell(1, 5).Value = "OS Manufacturer";
+                sysDataSheet.Cell(1, 6).Value = "Windows Directory";
+                sysDataSheet.Cell(1, 7).Value = "CPU Cores";
+                sysDataSheet.Cell(1, 8).Value = "CPU Threads";
+                sysDataSheet.Cell(1, 9).Value = "CPU Clock (MHz)";
 
                 for (int i = 0; i < report.SystemData.Count; i++)
                 {
@@ -117,10 +119,13 @@ namespace ComputerTracker.Services
                     int row = i + 2;
                     sysDataSheet.Cell(row, 1).Value = sd.SystemDataID;
                     sysDataSheet.Cell(row, 2).Value = sd.Timestamp.ToString("yyyy-MM-dd HH:mm:ss");
-                    sysDataSheet.Cell(row, 3).Value = sd.CPUUsage;
+                    sysDataSheet.Cell(row, 3).Value = sd.OSCaption;
                     sysDataSheet.Cell(row, 4).Value = sd.OSVersion;
-                    sysDataSheet.Cell(row, 5).Value = sd.DiskUsage;
-                    sysDataSheet.Cell(row, 6).Value = sd.NetworkUsage;
+                    sysDataSheet.Cell(row, 5).Value = sd.OSManufacturer;
+                    sysDataSheet.Cell(row, 6).Value = sd.WindowsDirectory;
+                    sysDataSheet.Cell(row, 7).Value = sd.CpuCores;
+                    sysDataSheet.Cell(row, 8).Value = sd.CpuThreads;
+                    sysDataSheet.Cell(row, 9).Value = sd.CpuClockMHz;
                 }
 
                 workbook.SaveAs(filePath);

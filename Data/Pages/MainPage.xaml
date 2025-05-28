@@ -20,10 +20,10 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Text="АРМСА" FontSize="24" Foreground="White" Margin="10,0,10,0" VerticalAlignment="Center"/>
+            <TextBlock Text="AUTOCT" FontSize="24" Foreground="White" Margin="10,0,10,0" VerticalAlignment="Center" FontFamily="Segoe UI Black"/>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                <Button Content="Выйти" Margin="10,0,10,0" Command="{Binding LogoutCommand}"/>
+                <Button Content="Выйти" Margin="10,0,10,0" Width="80" Command="{Binding LogoutCommand}"/>
             </StackPanel>
         </Grid>
 

@@ -16,17 +16,60 @@
         <TextBlock Text="Список компьютеров" FontSize="20" Margin="0,0,0,10" Foreground="White" Grid.Row="0"/>
 
         <!-- Основной DataGrid с данными компьютеров -->
-        <DataGrid ItemsSource="{Binding Computers}" AutoGenerateColumns="False" Margin="0,0,0,10" Background="#FF363636"
-          Grid.Row="1" SelectedItem="{Binding SelectedComputer}">
+        <DataGrid ItemsSource="{Binding Computers}"
+          AutoGenerateColumns="False"
+          Margin="0,0,0,10"
+          Background="#FF363636"
+          Grid.Row="1"
+          SelectedItem="{Binding SelectedComputer}">
             <DataGrid.Columns>
+                <!-- Базовые поля -->
                 <DataGridTextColumn Header="Имя" Binding="{Binding ComputerName}" Width="150"/>
                 <DataGridTextColumn Header="IP-адрес" Binding="{Binding IPAddress}" Width="120"/>
-                <DataGridTextColumn Header="Последнее обновление" Binding="{Binding LastUpdated, StringFormat={}{0:dd.MM.yyyy HH:mm}}" Width="150"/>
-                <DataGridTextColumn Header="CPU (%)" Binding="{Binding LatestSystemData.CPUUsage}" Width="160"/>
-                <DataGridTextColumn Header="Память (%)" Binding="{Binding LatestSystemData.MemoryUsage, StringFormat=N2}" Width="160"/>
-                <DataGridTextColumn Header="Диск (%)" Binding="{Binding LatestSystemData.DiskUsage, StringFormat=N2}" Width="160"/>
-                <DataGridTextColumn Header="Сеть (Мбит/с)" Binding="{Binding LatestSystemData.NetworkUsage, StringFormat=N2}" Width="160"/>
-                <DataGridTextColumn Header="OS" Binding="{Binding LatestSystemData.OSVersion}" Width="*"/>
+                <DataGridTextColumn Header="Хост" Binding="{Binding Host}" Width="120"/>
+                <DataGridTextColumn Header="Порт" Binding="{Binding Port}" Width="80"/>
+                <DataGridTextColumn Header="Последнее обновление"
+                             Binding="{Binding LastUpdated, StringFormat={}{0:dd.MM.yyyy HH:mm}}"
+                             Width="150"/>
+
+                <DataGridTextColumn Header="OS Caption"
+                             Binding="{Binding LatestSystemData.OSCaption}"
+                             Width="200"/>
+                <DataGridTextColumn Header="Производитель ОС"
+                             Binding="{Binding LatestSystemData.OSManufacturer}"
+                             Width="150"/>
+                <DataGridTextColumn Header="Расположение Windows"
+                             Binding="{Binding LatestSystemData.WindowsDirectory}"
+                             Width="200"/>
+
+                <DataGridTextColumn Header="Ядра CPU"
+                             Binding="{Binding LatestSystemData.CpuCores}"
+                             Width="80"/>
+                <DataGridTextColumn Header="Потоки CPU"
+                             Binding="{Binding LatestSystemData.CpuThreads}"
+                             Width="80"/>
+                <DataGridTextColumn Header="Частота MHz"
+                             Binding="{Binding LatestSystemData.CpuClockMHz}"
+                             Width="100"/>
+                
+                <DataGridTextColumn Header="GPU‑адаптеры"
+                             Binding="{Binding Gpus.Count}"
+                             Width="80"/>
+                <DataGridTextColumn Header="Клавиатуры"
+                             Binding="{Binding Keyboards.Count}"
+                             Width="80"/>
+                <DataGridTextColumn Header="Мыши"
+                             Binding="{Binding Mice.Count}"
+                             Width="80"/>
+                <DataGridTextColumn Header="Принтеры"
+                             Binding="{Binding Printers.Count}"
+                             Width="80"/>
+                <DataGridTextColumn Header="Сканеры"
+                             Binding="{Binding Scanners.Count}"
+                             Width="80"/>
+                <DataGridTextColumn Header="Мониторы"
+                             Binding="{Binding Monitors.Count}"
+                             Width="80"/>
             </DataGrid.Columns>
         </DataGrid>
 
